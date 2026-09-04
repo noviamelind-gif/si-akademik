@@ -47,5 +47,15 @@
     }
     ?>
 
+    <h2>Deteksi Method Request</h2>
+
+    <?php
+     if ($_SERVER['REQUEST_METHOD'] === 'GET') { 
+        echo "<p>Request menggunakan method GET.</p>";
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') { 
+        echo "<p>Request menggunakan method POST.</p>"; 
+    }
+    ?>
+    
 </body>
 </html>
