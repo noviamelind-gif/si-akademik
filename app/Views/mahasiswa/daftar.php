@@ -1,31 +1,33 @@
-<?php
+<!DOCTYPE html>
+<html lang="id">
 
-ob_start();
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-?>
+    <title>Daftar Mahasiswa</title>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+    <link 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+</head>
 
-    <div>
-        <h2>Daftar Mahasiswa</h2>
-        <p class="text-muted">
-            Data mahasiswa SI Akademik
-        </p>
-    </div>
+<body>
 
-    <a href="#" class="btn btn-primary">
-        + Tambah Mahasiswa
-    </a>
+<div class="container mt-5">
 
-</div>
+    <h1>Daftar Mahasiswa</h1>
 
-<div class="card shadow">
+    <p class="text-muted">
+        Data mahasiswa dari database
+    </p>
 
-    <div class="card-body">
+    <div class="card shadow mt-4">
 
-        <div class="table-responsive">
+        <div class="card-body">
 
-            <table class="table table-bordered table-hover">
+            <table class="table table-bordered table-striped">
 
                 <thead class="table-primary">
 
@@ -42,34 +44,34 @@ ob_start();
 
                 <tbody>
 
-                    <?php foreach ($mahasiswa as $index => $mhs): ?>
+                    <?php $no = 1; ?>
+
+                    <?php foreach ($mahasiswa as $mhs): ?>
 
                         <tr>
 
                             <td>
-                                <?= $index + 1 ?>
+                                <?= $no++ ?>
                             </td>
 
                             <td>
-                                <?= htmlspecialchars($mhs->getNim()) ?>
+                                <?= htmlspecialchars($mhs['nim']) ?>
                             </td>
 
                             <td>
-                                <?= htmlspecialchars($mhs->getNama()) ?>
+                                <?= htmlspecialchars($mhs['nama']) ?>
                             </td>
 
                             <td>
-                                <?= htmlspecialchars($mhs->getJurusan()) ?>
+                                <?= htmlspecialchars($mhs['nama_prodi']) ?>
                             </td>
 
                             <td>
-                                <?= htmlspecialchars($mhs->getEmail()) ?>
+                                <?= htmlspecialchars($mhs['email']) ?>
                             </td>
 
                             <td>
-                                <span class="badge bg-success">
-                                    <?= $mhs->getAngkatan() ?>
-                                </span>
+                                <?= htmlspecialchars($mhs['angkatan']) ?>
                             </td>
 
                         </tr>
@@ -86,10 +88,5 @@ ob_start();
 
 </div>
 
-<?php
-
-$content = ob_get_clean();
-
-require __DIR__ . '/../layouts/main.php';
-
-?>
+</body>
+</html>

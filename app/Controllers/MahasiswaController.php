@@ -1,20 +1,15 @@
 <?php
 
+require_once __DIR__ . '/../Models/MahasiswaModel.php';
+
 class MahasiswaController
 {
     public function index()
     {
-        echo "<h1>Halaman Daftar Mahasiswa</h1>";
-    }
+        $model = new MahasiswaModel();
 
-    public function create()
-    {
-        echo "<h1>Halaman Tambah Mahasiswa</h1>";
-    }
+        $mahasiswa = $model->all();
 
-    public function show($id)
-    {
-        echo "<h1>Detail Mahasiswa</h1>";
-        echo "<p>ID Mahasiswa: " . $id . "</p>";
+        require_once __DIR__ . '/../Views/mahasiswa/daftar.php';
     }
 }
