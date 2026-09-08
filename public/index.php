@@ -1,30 +1,26 @@
 <?php
 
-require_once __DIR__ . '/../app/models/Mahasiswa.php';
+$routes = require __DIR__ . '/../routes/web.php';
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$basePath = '/si-akademik/public';
 
-$mahasiswa = [
+if (strpos($uri, $basePath) === 0) {
+    $uri = substr($uri, strlen($basePath));
+}
+if ($uri === '') {
+    $uri = '/';
+}
 
-    new Mahasiswa(
-        "25219789",
-        "Novia",
-        "Teknik Informatika",
-        "novia@gmail.com"
-    ),
+$method = $_SERVER['REQUEST_METHOD'];
 
-    new Mahasiswa(
-        "25219790",
-        "rara",
-        "Sistem Informasi",
-        "rara80@gmail.com"
-    ),
-
-    new Mahasiswa(
-        "25219791",
-        "Reva",
-        "Teknik Informatika",
-        "reva33@gmail.com"
-    )
-
-];
-
-require_once __DIR__ . '/../app/views/mahasiswa/daftar.php';
+if (isset($routes[$method][$uri])) {
+    $route = $routes[$method][$uri];
+    $controllerName = $route['controller'];
+    $methodName = $route['method'];
+    require_once __DIR__ . '/../app/Controllers/' . $controllerName . '.php';
+    $controller = new $controllerName();
+    $controller->$methodName();
+} else {
+    http_response_code(404);
+    echo "404 - Halaman tidak ditemukan";
+}
