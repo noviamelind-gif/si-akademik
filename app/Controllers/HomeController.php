@@ -2,6 +2,11 @@
 
 class HomeController
 {
+    public function index()
+    {
+        echo "<h1>Halaman Home</h1>";
+    }
+
     public function dashboard()
     {  
         echo "<h1>Dashboard</h1>";
