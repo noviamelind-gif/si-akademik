@@ -1,25 +1,21 @@
 <?php
 
-require_once __DIR__ . '/../Models/MahasiswaModel.php';
+require_once __DIR__ . '/../Repositories/MahasiswaRepository.php';
 
 class MahasiswaController
 {
-    private MahasiswaModel $model;
+    private MahasiswaRepository $repo;
 
     public function __construct()
     {
-        $this->model = new MahasiswaModel();
+        $this->repo = new MahasiswaRepository(
+            Database::getInstance()
+        );
     }
 
     public function index()
     {
-        $keyword = trim($_GET['search'] ?? '');
-
-        if ($keyword !== '') {
-            $mahasiswa = $this->model->search($keyword);
-        } else {
-            $mahasiswa = $this->model->all();
-        }
+        $mahasiswa = $this->repo->all();
 
         require __DIR__ . '/../Views/mahasiswa/index.php';
     }
@@ -44,7 +40,7 @@ class MahasiswaController
             die('NIM dan Nama wajib diisi.');
         }
 
-        $this->model->create($data);
+        $this->repo->create($data);
 
         header('Location: /si-akademik/public/mahasiswa');
         exit;
@@ -52,7 +48,7 @@ class MahasiswaController
 
     public function edit($id)
     {
-        $mahasiswa = $this->model->find($id);
+        $mahasiswa = $this->repo->find($id);
 
         if (!$mahasiswa) {
             http_response_code(404);
@@ -74,7 +70,7 @@ class MahasiswaController
             'status' => $_POST['status'] ?? 'aktif'
         ];
 
-        $this->model->update($id, $data);
+        $this->repo->update($id, $data);
 
         header('Location: /si-akademik/public/mahasiswa');
         exit;
@@ -82,7 +78,7 @@ class MahasiswaController
 
     public function destroy($id)
     {
-        $this->model->delete($id);
+        $this->repo->delete($id);
 
         header('Location: /si-akademik/public/mahasiswa');
         exit;

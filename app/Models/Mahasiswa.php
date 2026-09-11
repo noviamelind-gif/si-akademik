@@ -9,10 +9,10 @@ class Mahasiswa
 
     public function __construct($nim, $nama, $jurusan, $email)
     {
-        $this->nim = $nim;
-        $this->nama = $nama;
-        $this->jurusan = $jurusan;
-        $this->email = $email;
+        $this->setNim($nim);
+        $this->setNama($nama);
+        $this->setJurusan($jurusan);
+        $this->setEmail($email);
     }
 
     public function getNim()
@@ -20,9 +20,31 @@ class Mahasiswa
         return $this->nim;
     }
 
+    public function setNim($nim)
+    {
+        if (!is_numeric($nim)) {
+            throw new InvalidArgumentException(
+                "NIM harus berupa angka."
+            );
+        }
+
+        $this->nim = $nim;
+    }
+
     public function getNama()
     {
         return $this->nama;
+    }
+
+    public function setNama($nama)
+    {
+        if (trim($nama) === '') {
+            throw new InvalidArgumentException(
+                "Nama mahasiswa tidak boleh kosong."
+            );
+        }
+
+        $this->nama = $nama;
     }
 
     public function getJurusan()
@@ -30,9 +52,19 @@ class Mahasiswa
         return $this->jurusan;
     }
 
+    public function setJurusan($jurusan)
+    {
+        $this->jurusan = $jurusan;
+    }
+
     public function getEmail()
     {
         return $this->email;
+    }
+
+    public function setEmail($email)
+    {
+        $this->email = $email;
     }
 
     public function getAngkatan()
