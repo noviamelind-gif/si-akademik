@@ -1,31 +1,46 @@
 <?php
 
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Repositories/MahasiswaRepository.php';
+require_once __DIR__ . '/../Core/Database.php';
 
-class MahasiswaController
+class MahasiswaController extends BaseController
 {
-    private MahasiswaRepository $repo;
+    private MahasiswaRepository $repository;
 
-    public function __construct()
+    public function __construct(MahasiswaRepository $repository)
     {
-        $this->repo = new MahasiswaRepository(
-            Database::getInstance()
-        );
+        $this->repository = $repository;
+    }
+  
+    public function index(): void
+    {
+        $keyword = trim($_GET['search'] ?? '');
+
+        if ($keyword !== '') {
+            $mahasiswa = $this->repository->search($keyword);
+        } else {
+            $mahasiswa = $this->repository->all();
+        }
+
+        $this->view('mahasiswa/index', [
+            'mahasiswa' => $mahasiswa
+        ]);
     }
 
-    public function index()
+    public function create(): void
     {
-        $mahasiswa = $this->repo->all();
+        require_once __DIR__ . '/../Models/ProdiModel.php';
 
-        require __DIR__ . '/../Views/mahasiswa/index.php';
+        $prodiModel = new ProdiModel();
+        $prodi = $prodiModel->all();
+
+        $this->view('mahasiswa/create', [
+            'prodi' => $prodi
+        ]);
     }
 
-    public function create()
-    {
-        require __DIR__ . '/../Views/mahasiswa/create.php';
-    }
-
-    public function store()
+    public function store(): void
     {
         $data = [
             'nim' => trim($_POST['nim'] ?? ''),
@@ -36,19 +51,22 @@ class MahasiswaController
             'status' => $_POST['status'] ?? 'aktif'
         ];
 
-        if ($data['nim'] === '' || $data['nama'] === '') {
-            die('NIM dan Nama wajib diisi.');
+        if ($data['nama'] === '') {
+            die('Nama mahasiswa tidak boleh kosong.');
         }
 
-        $this->repo->create($data);
+        if (!is_numeric($data['nim'])) {
+            die('NIM harus berupa angka.');
+        }
 
-        header('Location: /si-akademik/public/mahasiswa');
-        exit;
+        $this->repository->create($data);
+
+        $this->redirect('/si-akademik/public/mahasiswa');
     }
 
-    public function edit($id)
+    public function edit(int $id): void
     {
-        $mahasiswa = $this->repo->find($id);
+        $mahasiswa = $this->repository->find($id);
 
         if (!$mahasiswa) {
             http_response_code(404);
@@ -56,10 +74,18 @@ class MahasiswaController
             return;
         }
 
-        require __DIR__ . '/../Views/mahasiswa/edit.php';
+        require_once __DIR__ . '/../Models/ProdiModel.php';
+
+        $prodiModel = new ProdiModel();
+        $prodi = $prodiModel->all();
+
+        $this->view('mahasiswa/edit', [
+            'mahasiswa' => $mahasiswa,
+            'prodi' => $prodi
+        ]);
     }
 
-    public function update($id)
+    public function update(int $id): void
     {
         $data = [
             'nim' => trim($_POST['nim'] ?? ''),
@@ -70,17 +96,23 @@ class MahasiswaController
             'status' => $_POST['status'] ?? 'aktif'
         ];
 
-        $this->repo->update($id, $data);
+        if ($data['nama'] === '') {
+            die('Nama mahasiswa tidak boleh kosong.');
+        }
 
-        header('Location: /si-akademik/public/mahasiswa');
-        exit;
+        if (!is_numeric($data['nim'])) {
+            die('NIM harus berupa angka.');
+        }
+
+        $this->repository->update($id, $data);
+
+        $this->redirect('/si-akademik/public/mahasiswa');
     }
 
-    public function destroy($id)
+    public function destroy(int $id): void
     {
-        $this->repo->delete($id);
+        $this->repository->delete($id);
 
-        header('Location: /si-akademik/public/mahasiswa');
-        exit;
+        $this->redirect('/si-akademik/public/mahasiswa');
     }
 }

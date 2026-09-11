@@ -1,6 +1,7 @@
 <?php
 
 $routes = require __DIR__ . '/../routes/web.php';
+
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $basePath = '/si-akademik/public';
 
@@ -15,61 +16,133 @@ if ($uri === '') {
 $method = $_SERVER['REQUEST_METHOD'];
 
 
+// ==================================================
+// REQUIRE DATABASE & REPOSITORY
+// ==================================================
 
-// ROUTING PARAMETER /mahasiswa/{id}
-$parts = explode('/', trim($uri, '/'));
+require_once __DIR__ . '/../app/Core/Database.php';
+require_once __DIR__ . '/../app/Repositories/MahasiswaRepository.php';
 
 
-if (
-    $method === 'GET' &&
-    count($parts) === 2 &&
-    $parts[0] === 'mahasiswa' &&
-    is_numeric($parts[1])
-) {
+// ==================================================
+// CARI ROUTE
+// ==================================================
 
-    require_once __DIR__ . '/../app/Controllers/MahasiswaController.php';
+$route = null;
+$params = [];
 
-    require_once __DIR__ . '/../app/Core/Middleware/AuthMiddleware.php';
 
-    $middleware = new AuthMiddleware();
-    $middleware->handle();
+// 1. CEK ROUTE BIASA
+if (isset($routes[$method][$uri])) {
 
-    $controller = new MahasiswaController();
+    $route = $routes[$method][$uri];
 
-    $controller->show($parts[1]);
+}
+
+
+// 2. CEK ROUTE DENGAN PARAMETER {id}
+if ($route === null) {
+
+    foreach ($routes[$method] as $routeUri => $routeData) {
+
+        // Ubah /mahasiswa/{id}/edit menjadi pola regex
+        $pattern = preg_quote($routeUri, '#');
+
+        $pattern = str_replace(
+            '\{id\}',
+            '([0-9]+)',
+            $pattern
+        );
+
+        $pattern = '#^' . $pattern . '$#';
+
+        if (preg_match($pattern, $uri, $matches)) {
+
+            $route = $routeData;
+
+            // Ambil nilai id
+            if (isset($matches[1])) {
+                $params[] = (int) $matches[1];
+            }
+
+            break;
+        }
+    }
+}
+
+
+// ==================================================
+// JIKA ROUTE TIDAK DITEMUKAN
+// ==================================================
+
+if ($route === null) {
+
+    http_response_code(404);
+
+    echo "<h1>404 - Halaman tidak ditemukan</h1>";
 
     exit;
 }
 
 
-// ROUTING BIASA
+// ==================================================
+// JALANKAN MIDDLEWARE
+// ==================================================
 
-if (isset($routes[$method][$uri])) {
+$middlewares = $route['middleware'] ?? [];
 
-    $route = $routes[$method][$uri];
+foreach ($middlewares as $middlewareName) {
 
-    // Jalankan middleware
-    $middlewares = $route['middleware'] ?? [];
-    foreach ($middlewares as $middlewareName) {
-        require_once __DIR__ .
-            '/../app/Core/Middleware/' .
-            $middlewareName . '.php';
-        $middleware = new $middlewareName();
-        $middleware->handle();
-    }
-
-    // Jalankan Controller
-    $controllerName = $route['controller'];
-    $methodName = $route['method'];
     require_once __DIR__ .
-        '/../app/Controllers/' .
-        $controllerName . '.php';
-    $controller = new $controllerName();
-    $controller->$methodName();
-    
+        '/../app/Core/Middleware/' .
+        $middlewareName . '.php';
+
+    $middleware = new $middlewareName();
+
+    $middleware->handle();
+}
+
+
+// ==================================================
+// JALANKAN CONTROLLER
+// ==================================================
+
+$controllerName = $route['controller'];
+$methodName = $route['method'];
+
+require_once __DIR__ .
+    '/../app/Controllers/' .
+    $controllerName . '.php';
+
+
+// ==================================================
+// DEPENDENCY INJECTION
+// KHUSUS MAHASISWA CONTROLLER
+// ==================================================
+
+if ($controllerName === 'MahasiswaController') {
+
+    $repository = new MahasiswaRepository(
+        Database::getInstance()
+    );
+
+    $controller = new MahasiswaController($repository);
+
 } else {
 
-    http_response_code(404);
+    $controller = new $controllerName();
+}
 
-    echo "<h1>404 - Halaman tidak ditemukan</h1>";
+
+// ==================================================
+// JALANKAN METHOD CONTROLLER
+// ==================================================
+
+if (!empty($params)) {
+
+    $controller->$methodName(...$params);
+
+} else {
+
+    $controller->$methodName();
 }

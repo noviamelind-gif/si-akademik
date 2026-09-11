@@ -1,35 +1,31 @@
 <?php
 
-require_once __DIR__ . '/../Core/Database.php';
-
 class MahasiswaRepository
 {
-    private PDO $db;
+    private PDO $pdo;
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $pdo)
     {
-        $this->db = $db;
+        $this->pdo = $pdo;
     }
 
     public function all(): array
     {
-        $stmt = $this->db->prepare("
-            SELECT
+        $stmt = $this->pdo->query("
+            SELECT 
                 m.*,
                 p.nama AS prodi_nama
             FROM mahasiswa m
             JOIN prodi p ON m.prodi_id = p.id
-            ORDER BY m.id DESC
+            ORDER BY m.nim
         ");
-
-        $stmt->execute();
 
         return $stmt->fetchAll();
     }
 
-    public function find($id): ?array
+    public function find(int $id): ?array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->pdo->prepare("
             SELECT *
             FROM mahasiswa
             WHERE id = :id
@@ -39,21 +35,21 @@ class MahasiswaRepository
             'id' => $id
         ]);
 
-        $data = $stmt->fetch();
+        $row = $stmt->fetch();
 
-        return $data ?: null;
+        return $row ?: null;
     }
 
-    public function create(array $data): bool
+    public function create(array $data): int
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->pdo->prepare("
             INSERT INTO mahasiswa
             (nim, nama, email, prodi_id, angkatan, status)
             VALUES
             (:nim, :nama, :email, :prodi_id, :angkatan, :status)
         ");
 
-        return $stmt->execute([
+        $stmt->execute([
             'nim' => $data['nim'],
             'nama' => $data['nama'],
             'email' => $data['email'],
@@ -61,11 +57,13 @@ class MahasiswaRepository
             'angkatan' => $data['angkatan'],
             'status' => $data['status']
         ]);
+
+        return (int) $this->pdo->lastInsertId();
     }
 
-    public function update($id, array $data): bool
+    public function update(int $id, array $data): bool
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->pdo->prepare("
             UPDATE mahasiswa
             SET
                 nim = :nim,
@@ -88,9 +86,9 @@ class MahasiswaRepository
         ]);
     }
 
-    public function delete($id): bool
+    public function delete(int $id): bool
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->pdo->prepare("
             DELETE FROM mahasiswa
             WHERE id = :id
         ");
@@ -99,4 +97,28 @@ class MahasiswaRepository
             'id' => $id
         ]);
     }
+
+    public function search(string $keyword): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                m.*,
+                p.nama AS prodi_nama
+            FROM mahasiswa m
+            JOIN prodi p ON m.prodi_id = p.id
+            WHERE m.nama LIKE :keyword_nama
+            OR m.nim LIKE :keyword_nim
+            ORDER BY m.id DESC
+        ");
+
+        $keyword = '%' . $keyword . '%';
+
+        $stmt->execute([
+            'keyword_nama' => $keyword,
+            'keyword_nim' => $keyword
+        ]);
+
+        return $stmt->fetchAll();
+    }
 }
+?>
