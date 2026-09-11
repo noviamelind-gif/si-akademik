@@ -15,7 +15,7 @@ class AuthController
         // Login menggunakan hardcode
         if ($username === 'admin' && $password === '12345') {
             $_SESSION['user_id'] = 1;
-            $_SESSION['user_name'] = 'Admin';
+            $_SESSION['user_name'] = 'Novia';
             $_SESSION['logged_in'] = true;
             // flash message
             $_SESSION['flash_message'] = 'Selamat datang, Admin';
