@@ -18,7 +18,7 @@ session_start();
             <div class="card shadow">
                 <div class="card-body">
                     <h2 class="text-center mb-4">
-                        Login SI Akademik
+                        Login Sistem Akademik
                         Silakan login untuk mengakses sistem akademik.
                     </h2>
                         <?php 
