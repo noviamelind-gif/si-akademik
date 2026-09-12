@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 $routes = require __DIR__ . '/../routes/web.php';
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -16,12 +18,12 @@ if ($uri === '') {
 $method = $_SERVER['REQUEST_METHOD'];
 
 
-// ==================================================
 // REQUIRE DATABASE & REPOSITORY
-// ==================================================
 
 require_once __DIR__ . '/../app/Core/Database.php';
 require_once __DIR__ . '/../app/Repositories/MahasiswaRepository.php';
+require_once __DIR__ . '/../app/Repositories/ProdiRepository.php';
+require_once __DIR__ . '/../app/Services/MahasiswaService.php';
 
 
 // ==================================================
@@ -122,17 +124,21 @@ require_once __DIR__ .
 
 if ($controllerName === 'MahasiswaController') {
 
-    $repository = new MahasiswaRepository(
-        Database::getInstance()
+    $pdo = Database::getInstance();
+
+    $mahasiswaRepository = new MahasiswaRepository($pdo);
+    $prodiRepository = new ProdiRepository($pdo);
+
+    $service = new MahasiswaService(
+        $mahasiswaRepository,
+        $prodiRepository
     );
 
-    $controller = new MahasiswaController($repository);
+    $controller = new MahasiswaController($service);
 
 } else {
-
     $controller = new $controllerName();
 }
-
 
 // ==================================================
 // JALANKAN METHOD CONTROLLER

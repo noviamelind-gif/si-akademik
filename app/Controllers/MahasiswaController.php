@@ -1,26 +1,25 @@
 <?php
 
 require_once __DIR__ . '/BaseController.php';
-require_once __DIR__ . '/../Repositories/MahasiswaRepository.php';
-require_once __DIR__ . '/../Core/Database.php';
+require_once __DIR__ . '/../Services/MahasiswaService.php';
 
 class MahasiswaController extends BaseController
 {
-    private MahasiswaRepository $repository;
+    private MahasiswaService $service;
 
-    public function __construct(MahasiswaRepository $repository)
+    public function __construct(MahasiswaService $service)
     {
-        $this->repository = $repository;
+        $this->service = $service;
     }
-  
+
     public function index(): void
     {
         $keyword = trim($_GET['search'] ?? '');
 
         if ($keyword !== '') {
-            $mahasiswa = $this->repository->search($keyword);
+            $mahasiswa = $this->service->search($keyword);
         } else {
-            $mahasiswa = $this->repository->all();
+            $mahasiswa = $this->service->all();
         }
 
         $this->view('mahasiswa/index', [
@@ -30,10 +29,7 @@ class MahasiswaController extends BaseController
 
     public function create(): void
     {
-        require_once __DIR__ . '/../Models/ProdiModel.php';
-
-        $prodiModel = new ProdiModel();
-        $prodi = $prodiModel->all();
+        $prodi = $this->service->getProdi();
 
         $this->view('mahasiswa/create', [
             'prodi' => $prodi
@@ -51,22 +47,32 @@ class MahasiswaController extends BaseController
             'status' => $_POST['status'] ?? 'aktif'
         ];
 
-        if ($data['nama'] === '') {
-            die('Nama mahasiswa tidak boleh kosong.');
+        $result = $this->service->create($data);
+
+        if ($result['success']) {
+            $_SESSION['flash'] = [
+                'type' => 'success',
+                'message' => 'Data mahasiswa berhasil ditambahkan.'
+            ];
+
+            $this->redirect('/si-akademik/public/mahasiswa');
         }
 
-        if (!is_numeric($data['nim'])) {
-            die('NIM harus berupa angka.');
-        }
+        $message = $result['errors']['nim']
+            ?? $result['errors']['general']
+            ?? 'Data gagal disimpan.';
 
-        $this->repository->create($data);
+        $_SESSION['flash'] = [
+            'type' => 'error',
+            'message' => $message
+        ];
 
-        $this->redirect('/si-akademik/public/mahasiswa');
+        $this->redirect('/si-akademik/public/mahasiswa/create');
     }
 
     public function edit(int $id): void
     {
-        $mahasiswa = $this->repository->find($id);
+        $mahasiswa = $this->service->find($id);
 
         if (!$mahasiswa) {
             http_response_code(404);
@@ -74,10 +80,7 @@ class MahasiswaController extends BaseController
             return;
         }
 
-        require_once __DIR__ . '/../Models/ProdiModel.php';
-
-        $prodiModel = new ProdiModel();
-        $prodi = $prodiModel->all();
+        $prodi = $this->service->getProdi();
 
         $this->view('mahasiswa/edit', [
             'mahasiswa' => $mahasiswa,
@@ -96,22 +99,37 @@ class MahasiswaController extends BaseController
             'status' => $_POST['status'] ?? 'aktif'
         ];
 
-        if ($data['nama'] === '') {
-            die('Nama mahasiswa tidak boleh kosong.');
+        $result = $this->service->update($id, $data);
+
+        if ($result['success']) {
+            $_SESSION['flash'] = [
+                'type' => 'success',
+                'message' => 'Data mahasiswa berhasil diubah.'
+            ];
+
+            $this->redirect('/si-akademik/public/mahasiswa');
         }
 
-        if (!is_numeric($data['nim'])) {
-            die('NIM harus berupa angka.');
-        }
+        $message = $result['errors']['nim']
+            ?? $result['errors']['general']
+            ?? 'Data gagal disimpan.';
 
-        $this->repository->update($id, $data);
+        $_SESSION['flash'] = [
+            'type' => 'error',
+            'message' => $message
+        ];
 
-        $this->redirect('/si-akademik/public/mahasiswa');
+        $this->redirect('/si-akademik/public/mahasiswa/' . $id . '/edit');
     }
 
     public function destroy(int $id): void
     {
-        $this->repository->delete($id);
+        $this->service->delete($id);
+
+        $_SESSION['flash'] = [
+            'type' => 'success',
+            'message' => 'Data mahasiswa berhasil dihapus.'
+        ];
 
         $this->redirect('/si-akademik/public/mahasiswa');
     }

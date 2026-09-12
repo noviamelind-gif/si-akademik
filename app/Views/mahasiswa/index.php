@@ -1,3 +1,8 @@
+<?php
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -16,6 +21,23 @@
 <body>
 
 <div class="container mt-5">
+
+    <?php if ($flash): ?>
+
+        <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?> alert-dismissible fade show" role="alert">
+
+            <?= htmlspecialchars($flash['message']) ?>
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+            ></button>
+
+        </div>
+
+    <?php endif; ?>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 

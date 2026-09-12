@@ -19,7 +19,6 @@ session_start();
                 <div class="card-body">
                     <h2 class="text-center mb-4">
                         Login SI Akademik
-                        Silakan login untuk mengakses si akademik!
                     </h2>
                         <?php 
                             if (isset($_SESSION['flash_message'])): 
